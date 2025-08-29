@@ -15,13 +15,19 @@ const Home = () => {
     setInputValue(event.target.value);
   };
 
-  const handleAddTodo = () => [
-    setTodos([...todos, { title: inputValue, isDone: false, id: uuidv4() }]),
-  ];
+  const handleAddTodo = () => {
+    if (inputValue === "") {
+      alert("Please enter a task!");
+      return;
+    }
 
-  const handleOnChangeCheckbox = (event, index) => {
-    const newTodos = todos.map((todo, i) => {
-      if (i === index) todo.isDone = event.target.checked;
+    setTodos([{ title: inputValue, isDone: false, id: uuidv4() }, ...todos]),
+      setInputValue("");
+  };
+
+  const handleOnChangeCheckbox = (event, id) => {
+    const newTodos = todos.map((todo) => {
+      if (todo.id === id) todo.isDone = event.target.checked;
       return todo;
     });
 
@@ -39,8 +45,6 @@ const Home = () => {
     return todo.isDone;
   });
 
-  console.log("hello");
-
   return (
     <div className="h-screen flex justify-center items-center">
       <div className="bg-white w-[377px] flex flex-col gap-[40px] rounded-md shadow-[0_0_12px_0_rgba(0,0,0,0.16)]">
@@ -50,6 +54,12 @@ const Home = () => {
           </h3>
           <div className="flex gap-[20px] justify-center">
             <input
+              onKeyDown={(a) => {
+                if (a.key === "Enter") {
+                  handleAddTodo();
+                }
+              }}
+              value={inputValue}
               onChange={handleOnChange}
               type="text"
               placeholder="Add a new task..."
@@ -100,27 +110,55 @@ const Home = () => {
             >
               <div className="flex gap-[10px]">
                 <input
-                  onChange={(event) => handleOnChangeCheckbox(event, index)}
+                  onChange={(event) => handleOnChangeCheckbox(event, todo.id)}
                   type="checkbox"
                   defaultChecked={todo.isDone}
                 />
-                <p>{todo.title}</p>
+                <p className={todo.isDone ? "line-through" : ""}>
+                  {todo.title}
+                </p>
               </div>
               <button
-                onClick={() => handleDeleteTodo(index)}
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to delete this?")) {
+                    handleDeleteTodo(index);
+                  }
+                }}
                 className="bg-[#FEF2F2] text-[#EF4444] p-2 rounded-md"
               >
                 Delete
               </button>
             </div>
-          ))}{" "}
-          <p className="text-sm text-[#6B7280] font-inter flex justify-center">
-            No tasks yet. Add one above!
-          </p>{" "}
+          ))}
+          {filteredTodos.length === 0 ? (
+            <p className="text-sm text-[#6B7280] font-inter flex justify-center mt-4">
+              No tasks yet. Add one above!
+            </p>
+          ) : (
+            <div className="flex flex-row items-center justify-center gap-15 border-t w-[350px] mx-auto border-[#E4E4E7]">
+              <p className="text-sm text-[#6B7280] font-inter">
+                {filteredTodos.filter((task) => task.isDone).length} of{" "}
+                {filteredTodos.length} tasks completed
+              </p>
+
+              <button
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to delete this?")) {
+                    handleDeleteTodo(todos.id);
+                  }
+
+                  setTodos(todos.filter((todo) => !todo.isDone));
+                }}
+                className=" text-[#EF4444] p-2 rounded-md"
+              >
+                Clear Completed
+              </button>
+            </div>
+          )}
         </div>
         <p className="text-sm text-[#6B7280] font-inter flex justify-center gap-[4px] mb-[20px]">
           Powered by<span className="text-[#3B73ED]">Pinecone academy</span>
-        </p>{" "}
+        </p>
       </div>
     </div>
   );
